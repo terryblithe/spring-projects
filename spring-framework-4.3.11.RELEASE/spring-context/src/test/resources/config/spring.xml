@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <alias name="myTestBean" alias="myTestBean1, myTestBean2, myTestBean3"/>
+    <bean id="myTestBean" class="com.tb.test.bean.MyTestBean">
+        <meta key="testStr" value="aaaaa"/>
+    </bean>
+
+    <!-- 测试 lookup-method -->
+    <bean id="getBeanTest" class="com.tb.test.bean.GetBeanTest">
+        <!--<lookup-method name="getBean" bean="teacher"/>-->
+        <lookup-method name="getBean" bean="student"/>
+    </bean>
+    <bean id="teacher" class="com.tb.test.bean.Teacher"/>
+    <bean id="student" class="com.tb.test.bean.Student"/>
+
+    <!-- 测试 replaced-method -->
+    <bean id="testChangeMethod" class="com.tb.test.bean.TestChangeMethod">
+        <replaced-method name="changeMe" replacer="replacer"/>
+    </bean>
+    <bean id="replacer" class="com.tb.test.bean.TestMethodReplacer"/>
+
+    <!-- 测试 constructor-arg -->
+    <!-- 默认的情况下是按照参数的顺序注入，当指定 index 索引后就可以改变注入参数的顺序 -->
+    <bean id="constructorBean" class="com.tb.test.bean.ConstructorBean">
+        <constructor-arg index="0">
+            <value>老王</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>90</value>
+        </constructor-arg>
+    </bean>
+
+    <!-- 测试 property  -->
+    <bean id="propertyBean" class="com.tb.test.bean.PropertyBean">
+        <property name="names">
+            <list>
+                <value>aaa</value>
+                <value>bbb</value>
+            </list>
+        </property>
+    </bean>
+
+    <context:annotation-config/>
+    <context:component-scan base-package="com.tb.test"/>
+    <!-- 测试 qualifier -->
+    <bean id="qualifierBean" class="com.tb.test.bean.QualifierBean"/>
+    <bean class="com.tb.test.bean.NewPropertyBean">
+        <property name="names">
+            <list>
+                <value>zzzz</value>
+                <value>yyyy</value>
+            </list>
+        </property>
+        <qualifier type="org.springframework.beans.factory.annotation.Qualifier" value="action"/>
+    </bean>
+    <bean class="com.tb.test.bean.NewPropertyBean">
+        <property name="names">
+            <list>
+                <value>vvvv</value>
+                <value>kkkk</value>
+            </list>
+        </property>
+        <qualifier type="org.springframework.beans.factory.annotation.Qualifier" value="main"/>
+    </bean>
+
+    <import resource="spring-config.xml"/>
+    <import resource="spring-custom.xml"/>
+
+    <bean id="car" class="com.tb.test.factorybean.CarFactoryBean">
+        <property name="carInfo" value="超级跑车,400,25000000"/>
+    </bean>
+
+    <!-- 构造器循环依赖 -->
+    <!--<bean id="testA" class="com.tb.test.circledependency.TestA">
+        <constructor-arg index="0" ref="testB"/>
+    </bean>
+    <bean id="testB" class="com.tb.test.circledependency.TestB">
+        <constructor-arg index="0" ref="testC"/>
+    </bean>
+    <bean id="testC" class="com.tb.test.circledependency.TestC">
+        <constructor-arg index="0" ref="testA"/>
+    </bean>-->
+
+    <!-- 属性注入循环依赖 -->
+    <bean id="testAA" class="com.tb.test.circledependency.TestA">
+        <property name="testB" ref="testBB"/>
+    </bean>
+    <bean id="testBB" class="com.tb.test.circledependency.TestB">
+        <property name="testC" ref="testCC"/>
+    </bean>
+    <bean id="testCC" class="com.tb.test.circledependency.TestC">
+        <property name="testA" ref="testAA"/>
+    </bean>
+
+    <!-- 原型模式循环依赖 -->
+    <bean id="testAAA" class="com.tb.test.circledependency.TestA" scope="prototype">
+        <property name="testB" ref="testBBB"/>
+    </bean>
+    <bean id="testBBB" class="com.tb.test.circledependency.TestB" scope="prototype">
+        <property name="testC" ref="testCCC"/>
+    </bean>
+    <bean id="testCCC" class="com.tb.test.circledependency.TestC" scope="prototype">
+        <property name="testA" ref="testAAA"/>
+    </bean>
+
+    <bean id="awareTestBean" class="com.tb.test.aware.AwareTestBean"/>
+    <bean id="hello" class="com.tb.test.aware.Hello"/>
+
+    <bean id="userManager" class="com.tb.test.context.UserManager">
+        <property name="dataValue" value="2022-11-17"/>
+    </bean>
+
+    <!-- 注册属性编辑器 -->
+    <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+        <!-- 自定义属性编辑器1 -->
+        <!--<property name="customEditors">
+            <map>
+                <entry key="java.util.Date" value="com.tb.test.context.DatePropertyEditor" />
+            </map>
+        </property>-->
+        <!-- 自定义属性编辑器2 -->
+        <property name="propertyEditorRegistrars">
+            <list>
+                <bean class="com.tb.test.context.DatePropertyEditorRegistrar"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- BeanFactoryPostProcessor 应用，方式1：使用 PropertyPlaceholderConfigurer -->
+    <bean id="message" class="com.tb.test.beanfactory.HelloMessage">
+        <property name="mes">
+            <value>${bean.message}</value>
+        </property>
+    </bean>
+    <bean id="mesHandler" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>config/bean.property</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- BeanFactoryPostProcessor 应用，方式2：自定义实现 BeanFactoryPostProcessor -->
+    <bean id="bfpp" class="com.tb.test.beanfactory.ObscenityRemovingBeanFactoryPostProcessor">
+        <property name="obscenties">
+            <set>
+                <value>bollocks</value>
+                <value>winky</value>
+                <value>bum</value>
+                <value>Microsoft</value>
+            </set>
+        </property>
+    </bean>
+    <bean id="simpleBean" class="com.tb.test.beanfactory.SimplePostProcessor">
+        <property name="connectionString" value="bollocks"/>
+        <property name="username" value="Microsoft"/>
+        <property name="password" value="imageinecup"/>
+    </bean>
+
+    <!-- BeanPostProcessor 测试 -->
+    <!--<bean class="com.tb.test.aware.MyInstantiationAwareBeanPostProcessor"/>-->
+
+    <!-- 国际化测试, id 必须为 messageSource，否则会抛出 NoSuchMessageException 异常 -->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="defaultEncoding" value="UTF-8"/>
+        <property name="basenames">
+            <list>
+                <value>config/i18n/messages</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 自定义监听器 -->
+    <bean id="testListener" class="com.tb.test.listener.TestListener"/>
+
+    <!-- 自定 Converter -->
+    <bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.tb.test.converter.String2DateConverter"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 测试 AspectJ -->
+    <!-- 开启 aop 配置 -->
+    <aop:aspectj-autoproxy expose-proxy="true" />
+    <bean class="com.tb.test.aop.AspectJTest"/>
+    <bean id="aopService" class="com.tb.test.aop.AopServiceImpl"/>
+
+</beans>

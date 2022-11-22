@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:myns="http://www.lexueba.com/schema/user"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.lexueba.com/schema/user http://www.lexueba.com/schema/user.xsd">
+
+    <bean id="testImport" class="com.tb.test.bean.MyTestBean" primary="true">
+        <property name="testStr" value="testImport"/>
+    </bean>
+
+    <myns:user id="testUser" userName="aaa" email="bbb"/>
+
+</beans>
